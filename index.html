@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>One More Chance?</title>
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -15,8 +16,8 @@ body {
     overflow: hidden;
     position: relative;
     color: #fff;
-    /* Background image */
-    background: url('images/1.jpg') no-repeat center center;
+
+    background: url('image/1.jpg') no-repeat center center;
     background-size: cover;
 }
 
@@ -51,31 +52,34 @@ body {
 .card {
     background: rgba(255, 255, 255, 0.95);
     color: #333;
-    padding: 25px 20px;      
+    padding: 25px 20px;
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    max-width: 300px;        
+    max-width: 300px;
     text-align: center;
-    z-index: 5;               /* lower than NO button */
+    z-index: 5;
     position: relative;
 }
 .card img {
     width: 100%;
     border-radius: 15px;
-    margin-bottom: 15px;     
+    margin-bottom: 15px;
 }
 h2 { margin-bottom: 20px; font-size: 22px; }
+
+/* Buttons */
 button {
-    padding: 10px 25px;       
+    padding: 10px 25px;
     margin: 10px;
     border: none;
     border-radius: 12px;
     cursor: pointer;
     font-size: 16px;
 }
+
 .yes { background-color: #4CAF50; color: white; }
 
-/* NO button above everything */
+/* NO button */
 .no {
     background-color: #f44336;
     color: white;
@@ -83,19 +87,25 @@ button {
     left: 50%;
     top: 70%;
     transform: translate(-50%, -50%);
-    pointer-events: none;   /* impossible to click */
+    pointer-events: none;
     padding: 18px 35px;
     font-size: 20px;
     border-radius: 15px;
-    z-index: 9999;          /* on top of card/image */
+    z-index: 9999;
 }
 </style>
 </head>
+
 <body>
 
+<!-- 🎵 Background Music -->
+<audio id="bgMusic" autoplay loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
 <div class="card">
-    <!-- Card image -->
-    <img src="images/1.jpg" alt="Memories">
+    <img src="image/1.jpg" alt="Memories">
+
     <h2 id="question">Do you miss me?</h2>
     <button class="yes" onclick="nextStep()">Yes</button>
 </div>
@@ -103,18 +113,50 @@ button {
 <button class="no">No</button>
 
 <script>
+// Enable music on user interaction (browser policy fix)
+document.addEventListener("click", () => {
+    document.getElementById("bgMusic").play();
+});
+
 // Questions
 let step = 0;
+let yesSize = 16;
+
 const questions = [
     "Do you miss me?",
     "Do you remember our good memories?",
     "Can we fix what went wrong?",
     "Can you give us one more chance?"
 ];
+
+// Typing effect
+function typeText(text) {
+    let i = 0;
+    const el = document.getElementById("question");
+    el.innerText = "";
+
+    function typing() {
+        if(i < text.length) {
+            el.innerText += text.charAt(i);
+            i++;
+            setTimeout(typing, 40);
+        }
+    }
+    typing();
+}
+
+// YES button click
 function nextStep() {
     step++;
+
+    // Grow button
+    yesSize += 6;
+    const yesBtn = document.querySelector(".yes");
+    yesBtn.style.fontSize = yesSize + "px";
+    yesBtn.style.padding = (10 + yesSize/3) + "px";
+
     if(step < questions.length) {
-        document.getElementById("question").innerText = questions[step];
+        typeText(questions[step]);
     } else {
         document.querySelector(".card").innerHTML = `
             <h2>❤️ Thank you...</h2>
@@ -123,7 +165,7 @@ function nextStep() {
     }
 }
 
-// NO button logic (smooth + corner safe)
+// NO button animation
 const noBtn = document.querySelector(".no");
 let posX = window.innerWidth / 2;
 let posY = window.innerHeight * 0.7;
@@ -139,26 +181,23 @@ function animate() {
     const rect = noBtn.getBoundingClientRect();
     const btnX = posX + rect.width / 2;
     const btnY = posY + rect.height / 2;
+
     const dx = mouseX - btnX;
     const dy = mouseY - btnY;
     const distance = Math.hypot(dx, dy);
 
     if(distance < 150) {
         const angle = Math.atan2(dy, dx);
-        const speed = (150 - distance) / 2 + 7; // fast but smooth
+        const speed = (150 - distance) / 2 + 7;
+
         posX -= Math.cos(angle) * speed;
         posY -= Math.sin(angle) * speed;
 
-        // keep inside screen with edge padding
         const maxX = window.innerWidth - rect.width - edgePadding;
         const maxY = window.innerHeight - rect.height - edgePadding;
-        const minX = edgePadding;
-        const minY = edgePadding;
 
-        if(posX < minX) posX = minX + Math.random()*50;
-        if(posX > maxX) posX = maxX - Math.random()*50;
-        if(posY < minY) posY = minY + Math.random()*50;
-        if(posY > maxY) posY = maxY - Math.random()*50;
+        posX = Math.max(edgePadding, Math.min(posX, maxX));
+        posY = Math.max(edgePadding, Math.min(posY, maxY));
     }
 
     noBtn.style.left = posX + "px";
@@ -168,7 +207,7 @@ function animate() {
 }
 animate();
 
-// floating hearts
+// Floating hearts
 function createHeart() {
     const heart = document.createElement("div");
     heart.className = "heart";
@@ -176,6 +215,7 @@ function createHeart() {
     heart.style.animationDuration = 4 + Math.random() * 4 + "s";
     heart.style.width = 10 + Math.random() * 20 + "px";
     heart.style.height = heart.style.width;
+
     document.body.appendChild(heart);
     setTimeout(() => heart.remove(), 8000);
 }
